@@ -1,3 +1,4 @@
+import javax.security.auth.Subject;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -68,7 +69,9 @@ public class Graph {
     }
 
     public boolean isConnected (){
+
         Number_of_DFS_Visited = 0;
+        unmarkAll();
 
         for (int i = 0; i < num_of_vertices ; i++){
             if (Vertices.get(i).marked == false){
@@ -99,12 +102,39 @@ public class Graph {
     }
 
 
-    public int Furthest (int idx){
+
+    public void unmarkAll(){
         for (int i = 0; i < num_of_vertices; i++){
             Vertices.get(i).marked = false;
         }
-        return BFS_Diameter (Vertices.get(idx));
     }
+
+    //*********************************************************
+
+
+    public int findDiameter (){
+        int max_dist = 0;
+     //   System.out.println("***********************");
+        for (int i = 0; i < num_of_vertices; i++){
+            unmarkAll();
+            int dist = Furthest(i);
+      //      System.out.println("dist( : " + i + ") = " + dist);
+            if (dist > max_dist){
+                max_dist = dist;
+            }
+        }
+
+        return max_dist;
+    }
+
+
+    public int Furthest (int idx){
+    //    System.out.println("BFS init = " + idx);
+        return BFS_Diameter (Vertices.get(idx));
+
+
+    }
+
 
     public int BFS_Diameter  (Vertex v){
         int max_distance = 0;
@@ -125,16 +155,65 @@ public class Graph {
                     u.marked = true;
                     farthest = u;
                     max_distance = dist + 1;
+//                    System.out.println("visiting vertix : " + u.ID);
+//                    System.out.println("distance : " + max_distance);
 
-                    l.addLast(u);
-                    d.addLast(dist + 1);
+                    l.addFirst(u);
+                    d.addFirst(dist + 1);
 
                 }
             }
         }
 
-
+        //System.out.println("max_distance : " + max_distance);
         return max_distance;
+    }
+
+
+    //*********************************************************
+
+
+
+
+    public int Center (){
+
+        for (int i = 0; i < num_of_vertices - 1; i++){
+            for (int j = i+1; j < num_of_vertices; j++) {
+                if (Dist_Matrix[i][j] == -1){
+                    findDistance(i , j);
+                    //      System.out.println("i = " + i + " j = " + j + " Dist(i,j):" + Dist_Matrix[i][j]);
+                }
+            }
+        }
+
+        int min_distance_sum = 1000000000;
+        int center = 0;
+
+        int distance_sum = 0;
+        for (int i = 0; i < num_of_vertices; i++){
+
+            distance_sum = 0;
+            for (int j = 0; j < num_of_vertices; j++) {
+                distance_sum += Dist_Matrix[i][j];
+            }
+
+//            System.out.println(distance_sum);
+            if (min_distance_sum > distance_sum ){
+//                System.out.println("here");
+                center = i;
+                min_distance_sum = distance_sum;
+            }
+        }
+
+
+        return center;
+    }
+
+    public void findDistance (int i , int j){
+        for (int k = 0; k < num_of_vertices; k++){
+            Vertices.get(k).marked = false;
+        }
+        BFS_Distance (Vertices.get(i) , Vertices.get(j));
     }
 
 
@@ -146,7 +225,6 @@ public class Graph {
         v.marked = true;
         l.addLast(v);
         d.addLast(0);
-        System.out.println("HEERE");
 
         while (l.size() > 0){
             Vertex V = l.removeLast();
@@ -165,8 +243,8 @@ public class Graph {
                         return;
 
                     U.marked = true;
-                    l.addLast(U);
-                    d.addLast(dist + 1);
+                    l.addFirst(U);
+                    d.addFirst(dist + 1);
 
                 }
             }
@@ -175,117 +253,57 @@ public class Graph {
     }
 
 
-    public int findDiameter (){
-        int max_dist = 0;
 
-        for (int i = 0; i < num_of_edges; i++){
-            int dist = Furthest(i);
-            if (dist > max_dist){
-                max_dist = dist;
-            }
-        }
-
-        return max_dist;
-    }
-
-
-    public void findDistance (int i , int j){
-        for (int k = 0; k < num_of_vertices; k++){
-            Vertices.get(k).marked = false;
-        }
-        BFS_Distance (Vertices.get(i) , Vertices.get(j));
-    }
-
-
-    public int Center (){
-
-        for (int i = 0; i < num_of_vertices - 1; i++){
-            for (int j = i+1; j < num_of_vertices; j++) {
-                    if (Dist_Matrix[i][j] == -1){
-                        findDistance(i , j);
-                        System.out.println("i = " + i + " j = " + j + " Dist(i,j):" + Dist_Matrix[i][j]);
-                    }
-            }
-        }
-
-        int min_distance_sum = 1000000000;
-        int center = 0;
-
-        int distance_sum = 0;
-        for (int i = 0; i < num_of_vertices; i++){
-
-            distance_sum = 0;
-            for (int j = 0; j < num_of_vertices; j++) {
-                distance_sum += Dist_Matrix[i][j];
-            }
-
-            System.out.println(distance_sum);
-            if (min_distance_sum > distance_sum ){
-                System.out.println("here");
-                center = i;
-                min_distance_sum = distance_sum;
-            }
-        }
-
-
-        return center;
-    }
 
     public void colony (int k){
-        ArrayList<ArrayList<ArrayList<Vertex>>> l = partition_generator (0 , num_of_edges - 1, k);
+        ArrayList<ArrayList<ArrayList<Vertex>>> l = partition_generator (0 , num_of_vertices - 1, k);
 
 
         for (int i = 0; i < l.size(); i++){
             ArrayList<ArrayList<Vertex>> partition = l.get(i);
-            for (int j = 0; j < partition.size(); j++) {
-                ArrayList<Vertex> sub_partition = partition.get(j);
-                System.out.print("{ ");
-                for (int t = 0; t < sub_partition.size(); t++) {
-                    System.out.print(sub_partition.get(t).ID);
-                    if (t < sub_partition.size() - 1){
-                        System.out.print(" ,");
-                    }
-                }
-                System.out.print(" }");
-                if (j < partition.size() - 1){
-                    System.out.print(" , ");
-                }
-            }
+//            printPartition(partition);
 
-            System.out.println("");
+//            System.out.println("");
         }
 
-        System.out.println("********************");
+//        System.out.println("********************");
 
 
         int max_value = -1000000;
         ArrayList<ArrayList<Vertex>> best_partition = null;
         for (int i = 0; i < l.size(); i++){
             int value = colony_value(l.get(i));
-            System.out.println("Value   :" + value);
+            //System.out.println("Value   :" + value);
             if (value > max_value){
                 max_value = value;
                 best_partition = l.get(i);
             }
         }
 
-        System.out.println("Best Partition: ");
-        for (int j = 0; j < best_partition.size(); j++) {
-            ArrayList<Vertex> sub_partition = best_partition.get(j);
+//        System.out.println("Best Partition: ");
+
+        printPartition(best_partition);
+
+
+    }
+
+
+    public void printPartition (ArrayList<ArrayList<Vertex>> partition){
+        for (int j = 0; j < partition.size(); j++) {
+            ArrayList<Vertex> sub_partition = partition.get(j);
             System.out.print("{ ");
             for (int t = 0; t < sub_partition.size(); t++) {
-                System.out.print(sub_partition.get(t).ID);
+                System.out.print(sub_partition.get(t).ID + 1);
                 if (t < sub_partition.size() - 1){
                     System.out.print(" ,");
                 }
             }
             System.out.print(" }");
-            if (j < best_partition.size() - 1){
+            if (j < partition.size() - 1){
                 System.out.print(" , ");
             }
         }
-
-
+        System.out.println("");
     }
 
 
@@ -298,7 +316,7 @@ public class Graph {
             ArrayList<Vertex> sub_partition = partition.get(j);
             for (int t = 0; t < sub_partition.size(); t++) {
                 sub_partition.get(t).Colony_ID = j;
-                System.out.println("j : " + j);
+             //   System.out.println("j : " + j);
             }
         }
 
@@ -316,14 +334,28 @@ public class Graph {
     public ArrayList<ArrayList<ArrayList<Vertex>>> partition_generator (int start , int stop ,int k){
         if ((stop - start + 1) == k){
             ArrayList<ArrayList<ArrayList<Vertex>>> list = new ArrayList<>();
-            ArrayList<ArrayList<Vertex>> sublist = new ArrayList<>();
 
-            for (int i = start; i <= stop; i++){
-                ArrayList<Vertex> l = new ArrayList<>();
-                l.add(Vertices.get(i));
-                sublist.add(l);
+
+//            for (int i = start; i <= stop; i++){
+//                ArrayList<Vertex> l = new ArrayList<>();
+//                l.add(Vertices.get(i));
+//                sublist.add(l);
+//            }
+            ArrayList<ArrayList<Vertex>> subsets = subset(k , 0 , num_of_vertices - 1);
+            for (int i = 0; i < subsets.size(); i++){
+                ArrayList<ArrayList<Vertex>> sublist = new ArrayList<>();
+                ArrayList<Vertex> subset = subsets.get(i);
+                for (int t = 0; t < subset.size(); t ++){
+                    ArrayList<Vertex> l = new ArrayList<>();
+                    l.add(subset.get(t));
+                    sublist.add(l);
+                }
+
+                list.add(sublist);
+
             }
-             list.add(sublist);
+
+
             return list;
         }
 
@@ -332,6 +364,7 @@ public class Graph {
 
        for (int i = 0; i < list_k_1.size(); i++){
            ArrayList<ArrayList<Vertex>> partition_k_1 = list_k_1.get(i);
+      //     printPartition(partition_k_1);
            for (int t = 0; t < k; t++){
                ArrayList<ArrayList<Vertex>> partition_k = new ArrayList<>();
                 for (int j = 0; j < partition_k_1.size(); j++){
@@ -347,12 +380,54 @@ public class Graph {
                     partition_k.add(partition_subset_k);
                }
                partition_k.get(t).add(Vertices.get(start));
+          //      printPartition(partition_k);
                list_k.add(partition_k);
            }
        }
 
 
         return list_k;
+    }
+
+
+    public ArrayList<ArrayList<Vertex>> subset (int k , int start , int stop){
+        ArrayList<ArrayList<Vertex>> All_Subsets = new ArrayList<>();
+
+        if (k == stop - start + 1){
+            ArrayList<Vertex> Subset = new ArrayList<>();
+            for (int i = start; i <= stop; i++){
+                Subset.add(Vertices.get(i));
+            }
+            All_Subsets.add(Subset);
+            return All_Subsets;
+        } else if (k == 1){
+            for (int i = start; i <= stop; i++){
+                ArrayList<Vertex> Subset = new ArrayList<>();
+                Subset.add(Vertices.get(i));
+                All_Subsets.add(Subset);
+            }
+
+        } else {
+            ArrayList<ArrayList<Vertex>> ksubsets = subset(k , start + 1 , stop);
+            ArrayList<ArrayList<Vertex>> k_1subsets = subset(k-1 , start + 1 , stop);
+
+
+
+            for (int i = 0; i < ksubsets.size() ; i++) {
+                ArrayList<Vertex> subset = new ArrayList<>(ksubsets.get(i));
+                All_Subsets.add(subset);
+            }
+
+
+            for (int i = 0; i < k_1subsets.size() ; i++) {
+                ArrayList<Vertex> subset = new ArrayList<>(k_1subsets.get(i));
+                subset.add(Vertices.get(start));
+                All_Subsets.add(subset);
+
+            }
+        }
+
+        return All_Subsets;
     }
 
 }
