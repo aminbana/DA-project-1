@@ -24,7 +24,14 @@ public class Main {
 
 
         g.GprintDist();
+        g.colony(1);
 
+        g.colony(2);
 
+        g.colony(3);
+
+        g.colony(4);
+
+        g.colony(5);
     }
 }

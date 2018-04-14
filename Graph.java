@@ -8,6 +8,7 @@ public class Graph {
     int num_of_vertices = 0;
     int num_of_edges = 0;
     ArrayList <Vertex> Vertices = null;
+    ArrayList <Edge> Edges = null;
     int [][] Adj_Matrix;
     int [][] Dist_Matrix;
 
@@ -33,6 +34,8 @@ public class Graph {
     public void addEdge (int ID1 , int ID2){
         Vertices.get(ID1).addEdge(Vertices.get(ID2));
         Vertices.get(ID2).addEdge(Vertices.get(ID1));
+
+        Edges.add(new Edge(Vertices.get(ID1) , Vertices.get(ID2)));
         Adj_Matrix[ID1][ID2] = 1;
         Adj_Matrix[ID2][ID1] = 1;
         num_of_edges++;
@@ -224,6 +227,76 @@ public class Graph {
 
 
         return center;
+    }
+
+    public void colony (int k){
+        ArrayList<ArrayList<ArrayList<Vertex>>> l = partition_generator (0 , num_of_edges - 1, k);
+
+
+        for (int i = 0; i < l.size(); i++){
+            ArrayList<ArrayList<Vertex>> partition = l.get(i);
+            for (int j = 0; j < partition.size(); j++) {
+                ArrayList<Vertex> sub_partition = partition.get(j);
+                System.out.print("{ ");
+                for (int t = 0; t < sub_partition.size(); t++) {
+                    System.out.print(sub_partition.get(t).ID);
+                    if (t < sub_partition.size() - 1){
+                        System.out.print(" ,");
+                    }
+                }
+                System.out.print(" }");
+                if (j < partition.size() - 1){
+                    System.out.print(" , ");
+                }
+            }
+
+            System.out.println("");
+        }
+
+        System.out.println("********************");
+
+    }
+
+    public ArrayList<ArrayList<ArrayList<Vertex>>> partition_generator (int start , int stop ,int k){
+        if ((stop - start + 1) == k){
+            ArrayList<ArrayList<ArrayList<Vertex>>> list = new ArrayList<>();
+            ArrayList<ArrayList<Vertex>> sublist = new ArrayList<>();
+
+            for (int i = start; i <= stop; i++){
+                ArrayList<Vertex> l = new ArrayList<>();
+                l.add(Vertices.get(i));
+                sublist.add(l);
+            }
+             list.add(sublist);
+            return list;
+        }
+
+        ArrayList<ArrayList<ArrayList<Vertex>>> list_k_1 = partition_generator(start + 1 , stop , k);
+        ArrayList<ArrayList<ArrayList<Vertex>>> list_k = new ArrayList<>();
+
+       for (int i = 0; i < list_k_1.size(); i++){
+           ArrayList<ArrayList<Vertex>> partition_k_1 = list_k_1.get(i);
+           for (int t = 0; t < k; t++){
+               ArrayList<ArrayList<Vertex>> partition_k = new ArrayList<>();
+                for (int j = 0; j < partition_k_1.size(); j++){
+                    ArrayList<Vertex> partition_subset_k_1 = partition_k_1.get(j);
+                   ArrayList<Vertex> partition_subset_k = new ArrayList<> (partition_subset_k_1);
+
+                   //partition_subset_k.addAll(partition_subset_k_1);
+
+
+//                   for (int l = 0; l < partition_subset_k_1.size(); l++){
+//                       partition_subset_k.add(partition_subset_k_1.get(l));
+//                   }
+                    partition_k.add(partition_subset_k);
+               }
+               partition_k.get(t).add(Vertices.get(start));
+               list_k.add(partition_k);
+           }
+       }
+
+
+        return list_k;
     }
 
 }
