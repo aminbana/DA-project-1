@@ -5,6 +5,7 @@ public class Vertex {
     public LinkedList <Vertex> Adjacent = new LinkedList<>();
     public int num_edges = 0;
     public boolean marked = false;
+    public int Colony_ID = -1;
 
     Vertex (int ID){
         this.ID = ID;

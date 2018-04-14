@@ -18,6 +18,8 @@ public class Graph {
     Graph(int n){
         this.num_of_vertices = n;
         Vertices = new ArrayList <>();
+        Edges = new ArrayList<>();
+
         for (int i=0; i<n; i++) {
             Vertices.add(new Vertex(i));
         }
@@ -255,6 +257,60 @@ public class Graph {
 
         System.out.println("********************");
 
+
+        int max_value = -1000000;
+        ArrayList<ArrayList<Vertex>> best_partition = null;
+        for (int i = 0; i < l.size(); i++){
+            int value = colony_value(l.get(i));
+            System.out.println("Value   :" + value);
+            if (value > max_value){
+                max_value = value;
+                best_partition = l.get(i);
+            }
+        }
+
+        System.out.println("Best Partition: ");
+        for (int j = 0; j < best_partition.size(); j++) {
+            ArrayList<Vertex> sub_partition = best_partition.get(j);
+            System.out.print("{ ");
+            for (int t = 0; t < sub_partition.size(); t++) {
+                System.out.print(sub_partition.get(t).ID);
+                if (t < sub_partition.size() - 1){
+                    System.out.print(" ,");
+                }
+            }
+            System.out.print(" }");
+            if (j < best_partition.size() - 1){
+                System.out.print(" , ");
+            }
+        }
+
+
+    }
+
+
+
+
+    public int colony_value (ArrayList<ArrayList<Vertex>> partition){
+        int value = 0;
+
+        for (int j = 0; j < partition.size(); j++) {
+            ArrayList<Vertex> sub_partition = partition.get(j);
+            for (int t = 0; t < sub_partition.size(); t++) {
+                sub_partition.get(t).Colony_ID = j;
+                System.out.println("j : " + j);
+            }
+        }
+
+        for (Edge edge:Edges){
+
+            if (edge.v1.Colony_ID == edge.v2.Colony_ID){
+                value++;
+            } else {
+                value--;
+            }
+        }
+        return value;
     }
 
     public ArrayList<ArrayList<ArrayList<Vertex>>> partition_generator (int start , int stop ,int k){
