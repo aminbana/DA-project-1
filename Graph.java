@@ -9,6 +9,7 @@ public class Graph {
     int num_of_edges = 0;
     ArrayList <Vertex> Vertices = null;
     int [][] Adj_Matrix;
+    int [][] Dist_Matrix;
 
     int Number_of_DFS_Visited = 0;
     int Num_of_Segs = 0;
@@ -20,12 +21,12 @@ public class Graph {
             Vertices.add(new Vertex(i));
         }
         Adj_Matrix = new int[n][n];
-
-//        for (int i=0; i<n; i++) {
-//            for (int j=0; j<n ; j++){
-//                Adj_Matrix[i][j] = 0;
-//            }
-//        }
+        Dist_Matrix = new int[n][n];
+        for (int i=0; i<n; i++) {
+            for (int j=0; j<n ; j++){
+                Dist_Matrix[i][j] = -1;
+            }
+        }
 
     }
 
@@ -49,6 +50,18 @@ public class Graph {
 
     }
 
+
+    public void GprintDist (){
+        for (int i=0; i<num_of_vertices; i++) {
+            for (int j=0; j<num_of_vertices ; j++){
+                System.out.print(Dist_Matrix[i][j] + " ");
+            }
+            System.out.print("\n");
+        }
+        System.out.println("Number of Segments = " + Num_of_Segs);
+
+    }
+
     public boolean isConnected (){
         Number_of_DFS_Visited = 0;
 
@@ -59,7 +72,7 @@ public class Graph {
             }
         }
 
-        if (Num_of_Segs == num_of_vertices)
+        if (Num_of_Segs == 1)
             return true;
         else
             return false;
@@ -120,6 +133,43 @@ public class Graph {
     }
 
 
+    public void BFS_Distance  (Vertex v , Vertex u){
+
+
+        LinkedList<Vertex> l = new LinkedList<>();
+        LinkedList<Integer> d = new LinkedList<>();
+        v.marked = true;
+        l.addLast(v);
+        d.addLast(0);
+        System.out.println("HEERE");
+
+        while (l.size() > 0){
+            Vertex V = l.removeLast();
+            int dist = d.removeLast();
+
+            for (int i = 0 ; i < V.num_edges; i++){
+                Vertex U = V.Adjacent.get(i);
+
+                if (!U.marked){
+                    if (Dist_Matrix[U.ID][v.ID] == -1){
+                        Dist_Matrix[U.ID][v.ID] = dist + 1;
+                        Dist_Matrix[v.ID][U.ID] = dist + 1;
+                    }
+
+                    if (U.ID == u.ID)
+                        return;
+
+                    U.marked = true;
+                    l.addLast(U);
+                    d.addLast(dist + 1);
+
+                }
+            }
+        }
+
+    }
+
+
     public int findDiameter (){
         int max_dist = 0;
 
@@ -131,6 +181,49 @@ public class Graph {
         }
 
         return max_dist;
+    }
+
+
+    public void findDistance (int i , int j){
+        for (int k = 0; k < num_of_vertices; k++){
+            Vertices.get(k).marked = false;
+        }
+        BFS_Distance (Vertices.get(i) , Vertices.get(j));
+    }
+
+
+    public int Center (){
+
+        for (int i = 0; i < num_of_vertices - 1; i++){
+            for (int j = i+1; j < num_of_vertices; j++) {
+                    if (Dist_Matrix[i][j] == -1){
+                        findDistance(i , j);
+                        System.out.println("i = " + i + " j = " + j + " Dist(i,j):" + Dist_Matrix[i][j]);
+                    }
+            }
+        }
+
+        int min_distance_sum = 1000000000;
+        int center = 0;
+
+        int distance_sum = 0;
+        for (int i = 0; i < num_of_vertices; i++){
+
+            distance_sum = 0;
+            for (int j = 0; j < num_of_vertices; j++) {
+                distance_sum += Dist_Matrix[i][j];
+            }
+
+            System.out.println(distance_sum);
+            if (min_distance_sum > distance_sum ){
+                System.out.println("here");
+                center = i;
+                min_distance_sum = distance_sum;
+            }
+        }
+
+
+        return center;
     }
 
 }
